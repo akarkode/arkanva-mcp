@@ -1,0 +1,41 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.akarkode/arkanva",
+  "title": "Arkanva",
+  "description": "Create, edit, import and export Arkanva architecture diagrams and flowcharts.",
+  "version": "0.3.0",
+  "websiteUrl": "https://arkanva.com/docs",
+  "repository": {
+    "url": "https://github.com/akarkode/arkanva-mcp",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@arkanva/mcp",
+      "version": "0.3.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "ARKANVA_API_KEY",
+          "description": "Arkanva agent token (akf_...). Create one at https://arkanva.com/app under Account > Agent access.",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "ARKANVA_API_URL",
+          "description": "Arkanva address. Change it only for a self-hosted server.",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string",
+          "default": "https://arkanva.com"
+        }
+      ]
+    }
+  ]
+}

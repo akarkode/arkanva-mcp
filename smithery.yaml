@@ -1,0 +1,26 @@
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    required:
+      - arkanvaApiKey
+    properties:
+      arkanvaApiKey:
+        type: string
+        description: Arkanva agent token (akf_...). Create one at https://arkanva.com/app under Account > Agent access.
+      arkanvaApiUrl:
+        type: string
+        default: https://arkanva.com
+        description: Arkanva address. Change it only for a self-hosted server.
+  commandFunction: |-
+    (config) => ({
+      command: 'npx',
+      args: ['-y', '@arkanva/mcp'],
+      env: {
+        ARKANVA_API_KEY: config.arkanvaApiKey,
+        ARKANVA_API_URL: config.arkanvaApiUrl || 'https://arkanva.com'
+      }
+    })
+  exampleConfig:
+    arkanvaApiKey: akf_your_token
+    arkanvaApiUrl: https://arkanva.com

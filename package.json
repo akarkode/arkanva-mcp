@@ -1,0 +1,49 @@
+{
+  "name": "@arkanva/mcp",
+  "version": "0.3.0",
+  "description": "Official Arkanva MCP server: lets Claude Code, Claude Desktop, Cursor, Windsurf and other MCP clients build and edit Arkanva architecture diagrams.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "mcp-server",
+    "arkanva",
+    "architecture",
+    "diagram",
+    "flowchart",
+    "system-design",
+    "claude-code",
+    "claude-desktop",
+    "cursor",
+    "windsurf"
+  ],
+  "homepage": "https://arkanva.com/docs",
+  "bugs": {
+    "url": "https://github.com/akarkode/arkanva-mcp/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akarkode/arkanva-mcp.git"
+  },
+  "license": "MIT",
+  "author": "Arkanva",
+  "mcpName": "io.github.akarkode/arkanva",
+  "type": "module",
+  "bin": {
+    "arkanva-mcp": "./dist/arkanva-mcp.js"
+  },
+  "files": [
+    "dist/arkanva-mcp.js",
+    "dist/third-party-notices.txt",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "start": "node ./dist/arkanva-mcp.js"
+  }
+}
