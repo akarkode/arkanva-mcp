@@ -29,7 +29,7 @@
   "mcpName": "io.github.akarkode/arkanva",
   "type": "module",
   "bin": {
-    "arkanva-mcp": "./dist/arkanva-mcp.js"
+    "arkanva-mcp": "dist/arkanva-mcp.js"
   },
   "files": [
     "dist/arkanva-mcp.js",
