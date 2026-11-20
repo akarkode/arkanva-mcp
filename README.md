@@ -6,10 +6,13 @@
 [![MCP](https://img.shields.io/badge/MCP-stdio-8E7AB5)](https://modelcontextprotocol.io)
 
 The official [Model Context Protocol](https://modelcontextprotocol.io) server for
-[Arkanva](https://arkanva.com), the hand-drawn 3D pastel diagramming workspace. It lets Claude
-Code, Claude Desktop, Cursor, Windsurf, Codex and any other MCP client create, read, edit,
-import, export and share Arkanva architecture diagrams, flowcharts and system designs in your
-workspace.
+[Arkanva](https://arkanva.com), the visual layer for AI coding agents. Connect any MCP-compatible
+agent (Cline, Roo Code, OpenCode, Cursor, Windsurf, Claude Code, Codex, or your own agent on any
+model) and it can map your codebase into living architecture diagrams: create, read, edit, import,
+export and share them in your Arkanva workspace.
+
+- A ready-made `map-repo` prompt: the agent scans the repository, picks matching symbols, draws
+  the diagram with auto-layout and hands back a canvas link and a README snippet.
 
 - 20 tools: diagrams, folders, edits with auto-layout, symbol search across AWS, Azure, Google
   Cloud, Alibaba Cloud and generic catalogues, templates, Mermaid / draw.io / Excalidraw import,
@@ -34,18 +37,8 @@ You do not install anything by hand: your MCP client runs `npx -y @arkanva/mcp`,
 and starts the latest release. To pin it globally instead, run `npm install -g @arkanva/mcp` and
 use `arkanva-mcp` as the command.
 
-### Claude Code
-
-```bash
-claude mcp add -s user arkanva --env ARKANVA_API_KEY=akf_your_token -- npx -y @arkanva/mcp
-```
-
-`-s user` makes the server available in every project. Check it with `claude mcp list`.
-
-### Claude Desktop
-
-Edit `claude_desktop_config.json` (macOS: `~/Library/Application Support/Claude/`, Windows:
-`%APPDATA%\Claude\`) and restart the app:
+Every client below runs the same command, `npx -y @arkanva/mcp`, with the token in
+`ARKANVA_API_KEY`. Most of them read the same `mcpServers` JSON block:
 
 ```json
 {
@@ -58,6 +51,46 @@ Edit `claude_desktop_config.json` (macOS: `~/Library/Application Support/Claude/
   }
 }
 ```
+
+### Cline
+
+In the Cline panel open **MCP Servers → Configure MCP Servers** and add the `mcpServers` block
+above to `cline_mcp_settings.json`.
+
+### Roo Code
+
+Add the `mcpServers` block to the global `mcp_settings.json` (**MCP Servers → Edit Global MCP**) or
+to `.roo/mcp.json` in one project.
+
+### OpenCode
+
+`opencode.json`:
+
+```json
+{
+  "mcp": {
+    "arkanva": {
+      "type": "local",
+      "command": ["npx", "-y", "@arkanva/mcp"],
+      "environment": { "ARKANVA_API_KEY": "akf_your_token" },
+      "enabled": true
+    }
+  }
+}
+```
+
+### Claude Code
+
+```bash
+claude mcp add -s user arkanva --env ARKANVA_API_KEY=akf_your_token -- npx -y @arkanva/mcp
+```
+
+`-s user` makes the server available in every project. Check it with `claude mcp list`.
+
+### Claude Desktop
+
+Add the `mcpServers` block to `claude_desktop_config.json` (macOS:
+`~/Library/Application Support/Claude/`, Windows: `%APPDATA%\Claude\`) and restart the app.
 
 If Claude Desktop on Windows cannot start `npx`, use `"command": "cmd"` with
 `"args": ["/c", "npx", "-y", "@arkanva/mcp"]`.
@@ -100,13 +133,19 @@ args = ["-y", "@arkanva/mcp"]
 env = { ARKANVA_API_KEY = "akf_your_token" }
 ```
 
+### Custom agents
+
+Any agent built on an MCP SDK, whatever model it runs on (GLM, Qwen, Llama, GPT, Gemini, Claude),
+can start `npx -y @arkanva/mcp` as a stdio server with `ARKANVA_API_KEY` in its environment. The
+server does not call any model itself.
+
 ## Configuration
 
-| Variable              | Required | Default               | Purpose                                                                      |
-| --------------------- | -------- | --------------------- | ---------------------------------------------------------------------------- |
-| `ARKANVA_API_KEY`     | yes      |                       | Agent token (`akf_…`). `ARKANVA_TOKEN` is accepted as an alias.              |
-| `ARKANVA_API_URL`     | no       | `https://arkanva.com` | Arkanva address, for self-hosted servers. Must be https, except `localhost`. |
-| `ARKANVA_CHROME_PATH` | no       | auto-detected         | Chrome, Chromium or Edge used to render PNG and GIF exports.                 |
+| Variable              | Required | Default               | Purpose                                                         |
+| --------------------- | -------- | --------------------- | --------------------------------------------------------------- |
+| `ARKANVA_API_KEY`     | yes      |                       | Agent token (`akf_…`). `ARKANVA_TOKEN` is accepted as an alias. |
+| `ARKANVA_API_URL`     | no       | `https://arkanva.com` | Arkanva service address. Leave it unset.                        |
+| `ARKANVA_CHROME_PATH` | no       | auto-detected         | Chrome, Chromium or Edge used to render PNG and GIF exports.    |
 
 ```bash
 npx -y @arkanva/mcp --help
@@ -144,6 +183,17 @@ tools answer with a `401` error that tells you to create a new one.
 
 Every input is validated against its JSON schema before any request is sent. Full parameter
 reference: [arkanva.com/docs](https://arkanva.com/docs).
+
+## Prompts
+
+| Prompt     | Arguments          | What it does                                                                                                                                                                                                                                                             |
+| ---------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `map-repo` | `title` (optional) | Scans the repository for services, data stores and integrations, finds a symbol for each with `arkanva_search_symbols`, draws one diagram in a single `arkanva_apply_operations` batch with `autoLayout`, then returns the canvas link, share link and a README snippet. |
+
+Clients list MCP prompts in their own way, for example as a slash command (`/map-repo`) or in a
+prompt picker. GitHub READMEs strip iframes, so the snippet is an exported SVG committed to the
+repository and linked to the live read-only diagram; the `?embed=1` iframe works on docs sites
+that allow it. The prompt ships from `@arkanva/mcp` 0.4.0.
 
 ## Example prompts
 

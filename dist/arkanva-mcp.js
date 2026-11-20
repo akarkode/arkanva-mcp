@@ -7921,7 +7921,7 @@ Usage:
 Environment:
   ARKANVA_API_KEY      Agent token (akf_…). Required. ARKANVA_TOKEN is accepted as an alias.
                        Create one at ${TOKEN_PAGE_URL} (Account → Agent access).
-  ARKANVA_API_URL      Arkanva address. Default ${DEFAULT_API_URL}. Must be https, except localhost.
+  ARKANVA_API_URL      Arkanva service address. Default ${DEFAULT_API_URL}. Leave it unset.
   ARKANVA_CHROME_PATH  Chrome, Chromium or Edge used for png and gif export. Optional.
 
 Claude Code:
@@ -39944,6 +39944,31 @@ function autoLayoutOperations(operations, direction, existing) {
 		};
 	});
 }
+// src/mapRepo.ts
+var MAP_REPO_PROMPT = "map-repo";
+function mapRepoPrompt(apiUrl, title) {
+	return [
+		"Map the repository in the current working directory into one Arkanva architecture diagram.",
+		"",
+		"1. Scan the repository. Read the directory tree, package and build manifests, entry points, Dockerfiles, compose and deployment files, CI workflows, environment examples and configuration. Write down, from what the files actually contain:",
+		"   - services and apps (frontends, APIs, workers, CLIs, scheduled jobs)",
+		"   - data stores (databases, caches, queues, object storage)",
+		"   - external integrations (third-party APIs, auth providers, payment, email, AI providers, CDNs)",
+		"   - how they talk to each other (HTTP, gRPC, queues, database connections)",
+		"   Do not invent components. Leave out anything the code does not show, and never copy secret values into the diagram.",
+		"",
+		"2. Pick symbols. For every component call arkanva_search_symbols with a short keyword (for example \"postgres\", \"redis\", \"react\", \"worker\", \"s3\") and use the best returned symbolId. Use a generic symbol when nothing specific matches.",
+		"",
+		`3. Build the diagram. Call arkanva_create_document with title "${title?.trim() ? title.trim() : "<repository name> architecture"}", then one arkanva_apply_operations batch against the returned revision: an addNode of kind "symbol" for each component with a short label, and an addEdge for each connection labelled with the protocol. Set autoLayout to "LR" (or "TB" for deep call chains) and leave positions out. A batch that touches more than 50 elements returns confirmation_required: pass the returned confirmation back on the same call. Split into several batches only if you exceed 200 operations, opening the diagram again for the new revision each time.`,
+		"",
+		"4. Publish and report. Call arkanva_manage_share with action \"enable\" (it asks for confirmation first; pass it back after the user agrees), then reply with:",
+		`   - the canvas link: ${apiUrl}/app#/d/<documentId>`,
+		"   - the read-only link from the share result, and the same link with ?embed=1 for an iframe on a docs site",
+		"   - a README snippet. GitHub strips iframes, so export an SVG with arkanva_export_document (format \"svg\", outputPath \"docs/architecture.svg\") and link the image to the live diagram:",
+		"     [![Architecture](docs/architecture.svg)](<read-only link>)",
+		"   - a short list of what you mapped and anything you skipped or were unsure about."
+	].join("\n");
+}
 // ../../node_modules/d3-dispatch/dist/d3-dispatch.mjs
 var noop = { value: () => {} };
 function dispatch$1() {
@@ -68606,7 +68631,7 @@ async function launchRasterizer(env = process.env) {
 }
 // src/server.ts
 var SERVER_NAME = "arkanva";
-var SERVER_VERSION = "0.3.0";
+var SERVER_VERSION = "0.4.0";
 var documentId = string$1().uuid().describe("Diagram id from arkanva_list_documents.");
 var folderId = string$1().uuid().describe("Folder id from arkanva_list_folders.");
 var elementObject = record$1(string$1(), unknown());
@@ -69184,6 +69209,17 @@ function createServer(client, apiUrl, raster = launchRasterizer) {
 			}
 		}
 	}));
+	server.registerPrompt(MAP_REPO_PROMPT, {
+		title: "Map this repository",
+		description: "Scans the current repository for services, data stores and integrations, draws them as one Arkanva architecture diagram with matching symbols and autoLayout, and returns the canvas link, share link and a README snippet.",
+		argsSchema: { title: string$1().max(200).optional().describe("Diagram title.") }
+	}, ({ title }) => ({ messages: [{
+		role: "user",
+		content: {
+			type: "text",
+			text: mapRepoPrompt(apiUrl, title)
+		}
+	}] }));
 	return server;
 }
 // src/main.ts
